@@ -9,6 +9,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -17,7 +18,6 @@ import java.util.function.IntPredicate;
 import java.util.stream.IntStream;
 
 import org.infinispan.AdvancedCache;
-import org.infinispan.affinity.KeyAffinityService;
 import org.infinispan.affinity.KeyGenerator;
 import org.infinispan.configuration.cache.CacheMode;
 import org.infinispan.distribution.DistributionManager;
@@ -50,7 +50,7 @@ public class DefaultKeyAffinityServiceTestCase {
         Address remote = mock(Address.class);
         Address standby = mock(Address.class);
         Address ignored = mock(Address.class);
-        KeyAffinityService<UUID> service = new DefaultKeyAffinityService<>(cache, partitioner, generator, address -> (address != ignored));
+        DefaultKeyAffinityService<UUID> service = new DefaultKeyAffinityService<>(cache, partitioner, generator, address -> (address != ignored));
 
         DistributionManager dist = mock(DistributionManager.class);
         CacheTopology topology = mock(CacheTopology.class);
@@ -113,6 +113,8 @@ public class DefaultKeyAffinityServiceTestCase {
         // This should throw IAE, since address does not pass filter
         assertThrows(IllegalArgumentException.class, () -> service.getKeyForAddress(ignored));
 
+        Duration timeout = Duration.ofMillis(Long.MAX_VALUE / 1000000);
+        service.setPollTimeout(timeout);
         service.start();
 
         try {
